@@ -1,15 +1,17 @@
 import { useRef, useState, useEffect } from "react";
 
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import axios from "./api/axios";
 
 import useAuth from "./hooks/useAuth";
+import useInput from "./hooks/useInput";
+import useToggle from "./hooks/useToggle";
 
 const LOGIN_URL = "/auth/login";
 
 const Login = () => {
-  const { setAuthentication, persist, setPersist } = useAuth();
+  const { setAuthentication } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,11 +20,13 @@ const Login = () => {
   const usernameRef = useRef();
   const errRef = useRef();
 
-  const [username, setUsername] = useState("");
+  const {
+    reset,
+    attributeObj: { value: username, onChange: setUsername },
+  } = useInput("username", "");
   const [password, setPassword] = useState("");
   const [errMessage, setErrorMessage] = useState("");
-
-  const togglePersist = () => setPersist(prev => !prev);
+  const [check, toggleCheck] = useToggle("persist", false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +68,7 @@ const Login = () => {
 
       errRef.current.focus();
     } finally {
-      setUsername("");
+      reset();
       setPassword("");
       setErrorMessage("");
     }
@@ -79,10 +83,6 @@ const Login = () => {
   useEffect(() => {
     setErrorMessage("");
   }, [username, password]);
-
-  useEffect(() => {
-    localStorage.setItem("persist", persist);
-  }, [persist]);
 
   return (
     <section>
@@ -119,8 +119,8 @@ const Login = () => {
           <input
             type="checkbox"
             id="persist"
-            onChange={togglePersist}
-            checked={persist}
+            onChange={toggleCheck}
+            checked={check}
           />
         </div>
       </form>
