@@ -9,7 +9,7 @@ import useAuth from "./hooks/useAuth";
 const LOGIN_URL = "/auth/login";
 
 const Login = () => {
-  const { setAuthentication } = useAuth();
+  const { setAuthentication, persist, setPersist } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +21,8 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errMessage, setErrorMessage] = useState("");
+
+  const togglePersist = () => setPersist(prev => !prev);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,18 +48,20 @@ const Login = () => {
 
       setAuthentication({
         accessToken,
-        user: userInfo
+        user: userInfo,
       });
 
       navigate(from, { replace: true });
     } catch (err) {
       if (!err?.response) return setErrorMessage("서버 응답 오류");
 
-      if (err.response.status === 400) return setErrorMessage("유저명, 비밀번호 전송 오류");
-      if (err.response.status === 401) return setErrorMessage("유저명, 비밀번호 입력 오류");
-      
+      if (err.response.status === 400)
+        return setErrorMessage("유저명, 비밀번호 전송 오류");
+      if (err.response.status === 401)
+        return setErrorMessage("유저명, 비밀번호 입력 오류");
+
       setErrorMessage("로그인 오류");
-      
+
       errRef.current.focus();
     } finally {
       setUsername("");
@@ -75,6 +79,10 @@ const Login = () => {
   useEffect(() => {
     setErrorMessage("");
   }, [username, password]);
+
+  useEffect(() => {
+    localStorage.setItem("persist", persist);
+  }, [persist]);
 
   return (
     <section>
@@ -106,6 +114,15 @@ const Login = () => {
           required
         />
         <button>로그인</button>
+        <div>
+          <label htmlFor="persist">신뢰할 수 있는 기기인가요?</label>
+          <input
+            type="checkbox"
+            id="persist"
+            onChange={togglePersist}
+            checked={persist}
+          />
+        </div>
       </form>
     </section>
   );
